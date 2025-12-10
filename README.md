@@ -1,12 +1,7 @@
 
-# 🚦 Como funciona o fluxo?
+# 🚦 Projeto PLN - Como funciona o fluxo?
 
-O fluxo recebe uma pergunta do usuário por um **Webhook**.
-Depois disso acontecem três etapas importantes:
-
----
-
-# 1️⃣ O Classificador de Texto (Text Classifier)
+##  1️⃣ O Classificador de Texto (Text Classifier)
 
 Primeiro, o sistema usa um modelo de IA para **entender que tipo de pergunta o usuário fez**.
 Ele escolhe uma dessas categorias:
@@ -24,7 +19,7 @@ Ele escolhe uma dessas categorias:
 
 ---
 
-# 2️⃣ Encaminhamento para o Agente Correto
+##  2️⃣ Encaminhamento para o Agente Correto
 
 Se a pergunta for válida, ela é enviada para o agente certo:
 
@@ -60,33 +55,8 @@ Agente para perguntas **teóricas** sobre módulos:
 o que são, como funcionam, para que servem, vantagens, arquitetura etc.
 (Não fornece código — só explicação.)
 
----
 
-# 3️⃣ Recuperação de Conhecimento (RAG via Qdrant)
-
-Cada agente possui uma **collection no Qdrant**, que funciona como uma “biblioteca” particular dele.
-
-Exemplos:
-
-* `kernel_module_code` → guarda trechos de código de módulos.
-* `kernel_module_error` → guarda exemplos de erros reais.
-* `kernel_general` → guarda conteúdos sobre partes internas do kernel.
-* `setup_tools` → guarda comandos e configurações de ferramentas.
-* `kernel_module_qa` → guarda explicações conceituais.
-
-Sempre que um agente precisa, ele consulta sua própria collection para responder melhor.
-
-Essa busca usa **embeddings do Gemini ou do OpenAI**, dependendo do agente.
-
----
-
-# 4️⃣ Envio da Resposta Final
-
-Depois que o agente responde, o fluxo retorna a mensagem final pelo **Respond to Webhook**.
-
----
-
-# 🧩 Resumo geral do funcionamento
+## 🧩 Resumo geral do funcionamento
 
 1. O usuário envia uma pergunta.
 2. O Text Classifier decide a categoria.
