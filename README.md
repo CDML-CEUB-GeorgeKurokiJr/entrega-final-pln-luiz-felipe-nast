@@ -1,9 +1,97 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/7WTBqPQF)
-# pln
-Projeto final de PLN
 
+# 🚦 Como funciona o fluxo?
 
-## Data dinal de entrega: 08/12/2025 as 8:00hs
+O fluxo recebe uma pergunta do usuário por um **Webhook**.
+Depois disso acontecem três etapas importantes:
 
-* Projeto deve estar pronto para checkout e iniciação via docker compose
-* Os repositórios devem ser enviados (pasta /volumes)
+---
+
+# 1️⃣ O Classificador de Texto (Text Classifier)
+
+Primeiro, o sistema usa um modelo de IA para **entender que tipo de pergunta o usuário fez**.
+Ele escolhe uma dessas categorias:
+
+| Categoria            | Explicação simples                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| **kernel_module**    | Perguntas práticas sobre como criar, programar ou consertar um módulo do kernel Linux. |
+| **kernel_general**   | Perguntas sobre o kernel em si (memória, interrupções, processos, boot etc.).          |
+| **setup_tools**      | Perguntas sobre ferramentas e ambiente (GCC, Makefile, QEMU, debugging…).              |
+| **kernel_module_qa** | Perguntas teóricas sobre o que são módulos, para que servem etc.                       |
+| **out_of_question**  | Perguntas que não têm nada a ver com kernel.                                           |
+
+👉 Se a pergunta cair em **out_of_question**, o fluxo manda uma resposta simples:
+**“Pergunta fora do tema.”**
+
+---
+
+# 2️⃣ Encaminhamento para o Agente Correto
+
+Se a pergunta for válida, ela é enviada para o agente certo:
+
+### 🔧 kernel_module
+
+Agente especializado em **programação de módulos**.
+Saída típica: código C, instruções de init/exit, macros, erros de build, estrutura do driver etc.
+
+Esse agente ainda tem **duas ferramentas internas**:
+
+* **kernel_module_code** → ganha destaque quando a pergunta é sobre implementação
+* **kernel_module_error** → ganha destaque quando há um erro real (undefined symbol, dmesg, modprobe, warnings etc.)
+
+---
+
+### 🧠 kernel_general
+
+Agente para perguntas sobre o **funcionamento interno do kernel Linux**:
+memory management, system calls, interrupções, processos, scheduling, boot, GDT/IDT…
+
+---
+
+### 🛠️ setup_tools
+
+Agente para perguntas sobre o **ambiente de desenvolvimento**:
+GCC, Makefile, toolchains, QEMU, debugging, dependências…
+
+---
+
+### 📘 kernel_module_qa
+
+Agente para perguntas **teóricas** sobre módulos:
+o que são, como funcionam, para que servem, vantagens, arquitetura etc.
+(Não fornece código — só explicação.)
+
+---
+
+# 3️⃣ Recuperação de Conhecimento (RAG via Qdrant)
+
+Cada agente possui uma **collection no Qdrant**, que funciona como uma “biblioteca” particular dele.
+
+Exemplos:
+
+* `kernel_module_code` → guarda trechos de código de módulos.
+* `kernel_module_error` → guarda exemplos de erros reais.
+* `kernel_general` → guarda conteúdos sobre partes internas do kernel.
+* `setup_tools` → guarda comandos e configurações de ferramentas.
+* `kernel_module_qa` → guarda explicações conceituais.
+
+Sempre que um agente precisa, ele consulta sua própria collection para responder melhor.
+
+Essa busca usa **embeddings do Gemini ou do OpenAI**, dependendo do agente.
+
+---
+
+# 4️⃣ Envio da Resposta Final
+
+Depois que o agente responde, o fluxo retorna a mensagem final pelo **Respond to Webhook**.
+
+---
+
+# 🧩 Resumo geral do funcionamento
+
+1. O usuário envia uma pergunta.
+2. O Text Classifier decide a categoria.
+3. A pergunta vai para o agente certo.
+4. Se for módulo, o agente ainda decide entre ferramenta de código ou de erro.
+5. O agente consulta sua biblioteca no Qdrant.
+6. O sistema responde ao usuário.
+
